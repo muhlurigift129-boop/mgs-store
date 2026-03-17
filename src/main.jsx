@@ -3,8 +3,8 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Store from "./pages/Store";
-import Product from "./pages/Product";
-import Cart from "./pages/Cart";
+import Product from "./pages/product";   
+import Cart from "./pages/cart";         
 
 function App() {
   const [cart, setCart] = useState([]);
