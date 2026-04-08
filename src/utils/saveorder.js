@@ -1,18 +1,38 @@
 import { db } from "../firebase"
-import { collection, addDoc } from "firebase/firestore"
+import { collection, query, where, getDocs, updateDoc } from "firebase/firestore"
 
 export async function saveOrder(order){
 
 try{
 
-await addDoc(collection(db,"orders"),order)
+/* 🔍 Find existing order using orderId */
+const q = query(
+collection(db,"orders"),
+where("orderId","==",order.orderId)
+)
 
-console.log("Order saved")
+const snapshot = await getDocs(q)
+
+if(snapshot.empty){
+console.log("Order not found — skipping duplicate save")
+return order.orderId
+}
+
+/* 📄 Get document */
+const docRef = snapshot.docs[0].ref
+
+/* ✅ Update instead of creating new */
+await updateDoc(docRef,{
+status: order.status || "paid",
+paid: true,
+updatedAt: new Date()
+})
+
+return order.orderId
 
 }catch(err){
-
-console.error("Order error",err)
-
+console.error("Save order error:",err)
+return null
 }
 
 }

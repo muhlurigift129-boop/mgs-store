@@ -1,53 +1,36 @@
-import { link } from "react-router-dom"
+export default function ProductCard({ product, addToCart, removeFromCart }) {
 
-export default function ProductCard({product,addToCart}){
-
-return(
+return (
 
 <div style={{
-background:"#1c1c1c",
-padding:"10px",
-borderRadius:"10px",
-width:"180px"
-}}>
-
-<Link to={"/product/"+product.id}>
-
-<img
-src={product.image}
-style={{
-width:"100%",
-borderRadius:"8px"
+  background:"#fff",
+  padding:"15px",
+  borderRadius:"12px",
+  boxShadow:"0 4px 12px rgba(0,0,0,0.1)",
+  textAlign:"center",
+  transition:"0.3s"
 }}
-/>
+onMouseEnter={e=>e.currentTarget.style.transform="scale(1.05)"}
+onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}
+>
 
-</Link>
+<img src={product.image} width="140" />
 
 <h4>{product.name}</h4>
 
-<p style={{fontWeight:"bold"}}>
+<p style={{color:"#0a3d91",fontWeight:"bold"}}>
+R{product.price}
+</p>
 
-R {product.price}
+<p style={{fontSize:"12px",color:"#ffaa00"}}>⭐⭐⭐⭐☆</p>
+
+<div style={{display:"flex",justifyContent:"center",gap:"10px"}}>
+
+<button onClick={()=>removeFromCart(product.id)}>−</button>
+
+<button onClick={()=>addToCart(product)}>+</button>
 
 </div>
-
-<p>⭐ 4.5</p>
-
-<button
-onClick={()=>addToCart(product)}
-style={{
-background:"#00aaff",
-border:"none",
-padding:"8px",
-borderRadius:"6px",
-color:"white",
-width:"100%"
-}}
->
-
-Add to Cart
-
-</button>
 
 </div>
 

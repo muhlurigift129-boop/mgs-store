@@ -6,28 +6,41 @@ export default function Cart({ cart, setCart }) {
 
 const navigate = useNavigate()
 
-const itemsTotal = cart.reduce((sum, item) => sum + item.price, 0)
-
-const weight = cart.reduce((sum, item) => sum + item.weight, 0)
-
+// DELIVERY STATE
 const [delivery, setDelivery] = useState("pickup")
+
+// CALCULATIONS (FIXED)
+const itemsTotal = cart.reduce((sum, item) => sum + item.price * (item.qty || 1), 0)
+
+const weight = cart.reduce((sum, item) => sum + item.weight * (item.qty || 1), 0)
 
 const shipping = delivery === "shipping" ? calculateShipping(weight) : 0
 
 const total = itemsTotal + shipping
 
-
+// REMOVE ITEM
 function removeItem(id){
 setCart(cart.filter(item => item.id !== id))
 }
 
+// CHECKOUT
+function handleCheckout(){
+
+navigate("/checkout", {
+state: {
+cartItems: cart,
+delivery,
+total
+}
+})
+
+}
 
 return (
 
 <div style={{ padding:"40px", maxWidth:"900px", margin:"auto" }}>
 
 <h2>Your Shopping Cart</h2>
-
 
 {/* CART ITEMS */}
 
@@ -56,7 +69,11 @@ boxShadow:"0 2px 6px rgba(0,0,0,0.1)"
 
 <p>Price: R{item.price}</p>
 
-<p style={{fontSize:"12px"}}>Weight: {item.weight} kg</p>
+<p>Qty: {item.qty || 1}</p>
+
+<p style={{fontSize:"12px"}}>
+Weight: {(item.weight * (item.qty || 1)).toFixed(2)} kg
+</p>
 
 </div>
 
@@ -71,15 +88,12 @@ cursor:"pointer",
 borderRadius:"4px"
 }}
 >
-
 Remove
-
 </button>
 
 </div>
 
 ))}
-
 
 {/* DELIVERY OPTIONS */}
 
@@ -93,33 +107,26 @@ borderRadius:"8px"
 <h3>Delivery Method</h3>
 
 <label>
-
 <input
 type="radio"
 checked={delivery==="pickup"}
 onChange={()=>setDelivery("pickup")}
 />
-
  Pickup (Free)
-
 </label>
 
 <br/>
 
 <label>
-
 <input
 type="radio"
 checked={delivery==="shipping"}
 onChange={()=>setDelivery("shipping")}
 />
-
  Shipping
-
 </label>
 
 </div>
-
 
 {/* ORDER SUMMARY */}
 
@@ -133,17 +140,16 @@ boxShadow:"0 2px 6px rgba(0,0,0,0.1)"
 
 <h3>Order Summary</h3>
 
-<p>Items Total: R{itemsTotal}</p>
+<p>Items Total: <b>R{itemsTotal.toFixed(2)}</b></p>
 
-<p>Total Weight: {weight.toFixed(2)} kg</p>
+<p>Total Weight: <b>{weight.toFixed(2)} kg</b></p>
 
-<p>Shipping: R{shipping}</p>
+<p>Shipping: <b>R{shipping.toFixed(2)}</b></p>
 
-<h2>Total: R{total}</h2>
-
+<h2>Total: R{total.toFixed(2)}</h2>
 
 <button
-onClick={()=>navigate("/checkout")}
+onClick={handleCheckout}
 style={{
 background:"#0a3d91",
 color:"#fff",
@@ -152,12 +158,11 @@ padding:"12px 20px",
 cursor:"pointer",
 borderRadius:"6px",
 width:"100%",
-marginTop:"10px"
+marginTop:"10px",
+fontWeight:"bold"
 }}
 >
-
 Proceed to Checkout
-
 </button>
 
 </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Store({ addToCart }) {
+export default function Store() {
 
 const products = [
 { id:1, name:"Chicken Noodles Packet", price:25, weight:0.1, image:"https://via.placeholder.com/200?text=Chicken"},
@@ -23,7 +23,9 @@ const products = [
 const [cart,setCart] = useState({});
 const [search,setSearch] = useState("");
 const [delivery,setDelivery] = useState("pickup");
+const [openCart,setOpenCart] = useState(false);
 
+// ADD
 function addItem(product){
 const newCart = {...cart}
 if(newCart[product.id]){
@@ -34,6 +36,7 @@ if(newCart[product.id]){
 setCart(newCart)
 }
 
+// REMOVE
 function removeItem(id){
 const newCart = {...cart}
 if(newCart[id]?.qty > 1){
@@ -44,6 +47,7 @@ if(newCart[id]?.qty > 1){
 setCart(newCart)
 }
 
+// DATA
 const filteredProducts = products.filter(p =>
 p.name.toLowerCase().includes(search.toLowerCase())
 )
@@ -83,23 +87,26 @@ style={{
 padding:"10px",
 width:"350px",
 borderRadius:"6px",
-border:"none",
-outline:"none"
+border:"none"
 }}
 />
 
-<div style={{
+<div
+onClick={()=>setOpenCart(true)}
+style={{
 background:"#e60023",
 padding:"8px 15px",
 borderRadius:"20px",
-fontWeight:"bold"
-}}>
+fontWeight:"bold",
+cursor:"pointer"
+}}
+>
 🛒 {cartCount}
 </div>
 
 </div>
 
-{/* PRODUCT GRID */}
+{/* PRODUCTS */}
 <div style={{
 display:"grid",
 gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",
@@ -126,37 +133,14 @@ onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}
 
 <h4>{p.name}</h4>
 
-<p style={{color:"#0a3d91",fontWeight:"bold",fontSize:"18px"}}>
+<p style={{color:"#0a3d91",fontWeight:"bold"}}>
 R{p.price}
 </p>
 
-<p style={{fontSize:"12px",color:"#ffaa00"}}>⭐⭐⭐⭐☆</p>
-
 <div style={{display:"flex",justifyContent:"center",gap:"10px"}}>
 
-<button
-onClick={()=>removeItem(p.id)}
-style={{
-background:"#ddd",
-border:"none",
-padding:"6px 12px",
-borderRadius:"5px",
-cursor:"pointer"
-}}
->-</button>
-
-<button
-onClick={()=>addItem(p)}
-style={{
-background:"#e60023",
-color:"#fff",
-border:"none",
-padding:"6px 14px",
-borderRadius:"5px",
-cursor:"pointer",
-fontWeight:"bold"
-}}
->+</button>
+<button onClick={()=>removeItem(p.id)}>-</button>
+<button onClick={()=>addItem(p)}>+</button>
 
 </div>
 
@@ -166,26 +150,65 @@ fontWeight:"bold"
 
 </div>
 
-{/* ORDER SUMMARY */}
-{cartItems.length>0 && (
+{/* OVERLAY */}
+{openCart && (
+<div
+onClick={()=>setOpenCart(false)}
+style={{
+position:"fixed",
+top:0,
+left:0,
+width:"100%",
+height:"100%",
+background:"rgba(0,0,0,0.5)",
+zIndex:999
+}}
+/>
+)}
 
+{/* SLIDE CART */}
 <div style={{
 position:"fixed",
-bottom:"20px",
-right:"20px",
+top:0,
+right: openCart ? "0" : "-350px",
+width:"320px",
+height:"100%",
 background:"#fff",
+boxShadow:"-4px 0 20px rgba(0,0,0,0.3)",
 padding:"20px",
-width:"280px",
-borderRadius:"12px",
-boxShadow:"0 6px 20px rgba(0,0,0,0.25)"
+transition:"0.3s",
+zIndex:1000,
+overflowY:"auto"
 }}>
 
-<h3>🧾 Order Summary</h3>
-
-<p>Items: <b>{cartCount}</b></p>
-<p>Items Total: <b>R{itemsTotal.toFixed(2)}</b></p>
+<div style={{display:"flex",justifyContent:"space-between"}}>
+<h2>🛒 Cart</h2>
+<button onClick={()=>setOpenCart(false)}>X</button>
+</div>
 
 <hr/>
+
+{cartItems.length===0 && <p>Cart is empty</p>}
+
+{cartItems.map(item=>(
+
+<div key={item.id} style={{marginBottom:"15px"}}>
+
+<h4>{item.name}</h4>
+<p>R{item.price} x {item.qty}</p>
+
+<div style={{display:"flex",gap:"10px"}}>
+<button onClick={()=>removeItem(item.id)}>-</button>
+<button onClick={()=>addItem(item)}>+</button>
+</div>
+
+</div>
+
+))}
+
+<hr/>
+
+<h4>Delivery</h4>
 
 <label>
 <input
@@ -205,11 +228,9 @@ onChange={()=>setDelivery("shipping")}
 /> Shipping
 </label>
 
-<p>Shipping: <b>R{shipping.toFixed(2)}</b></p>
+<p>Shipping: R{shipping.toFixed(2)}</p>
 
-<h2 style={{color:"#0a3d91"}}>
-Total: R{total.toFixed(2)}
-</h2>
+<h2>Total: R{total.toFixed(2)}</h2>
 
 <button
 style={{
@@ -219,8 +240,7 @@ border:"none",
 padding:"12px",
 width:"100%",
 borderRadius:"6px",
-cursor:"pointer",
-fontWeight:"bold"
+cursor:"pointer"
 }}
 >
 Checkout
@@ -228,9 +248,6 @@ Checkout
 
 </div>
 
-)}
-
 </div>
-
 )
 }

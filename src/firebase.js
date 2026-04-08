@@ -1,11 +1,14 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// Firebase core
+import { initializeApp } from "firebase/app"
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// 🔥 Add these (VERY IMPORTANT)
+import { getFirestore } from "firebase/firestore"
+import { getAuth } from "firebase/auth"
+
+// Optional (safe analytics for production)
+import { getAnalytics, isSupported } from "firebase/analytics"
+
+// Your config
 const firebaseConfig = {
   apiKey: "AIzaSyDpLXAn7sYWfJWvsi0Rb-qcojZC3NgkjJQ",
   authDomain: "mgs-store-f3053.firebaseapp.com",
@@ -14,8 +17,24 @@ const firebaseConfig = {
   messagingSenderId: "581808688902",
   appId: "1:581808688902:web:dfee492eca9f1ef499d887",
   measurementId: "G-XJZSHWJK2Y"
-};
+}
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Initialize app
+const app = initializeApp(firebaseConfig)
+
+// ✅ FIRESTORE (orders, products, tracking)
+export const db = getFirestore(app)
+
+// ✅ AUTH (login/register)
+export const auth = getAuth(app)
+
+// ✅ SAFE ANALYTICS (won’t crash on Render)
+export let analytics = null
+
+isSupported().then((yes)=>{
+  if(yes){
+    analytics = getAnalytics(app)
+  }
+})
+
+export default app

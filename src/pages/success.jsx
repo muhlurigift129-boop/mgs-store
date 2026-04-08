@@ -1,34 +1,69 @@
 import { Link, useLocation } from "react-router-dom"
-import { useEffect, useRef } from "react"
-import { saveOrder } from "../utils/saveOrder"
+import { useEffect, useRef, useState } from "react"
+import { collection, query, where, getDocs, updateDoc } from "firebase/firestore"
+import { db } from "../firebase"
 import { sendEmail } from "../utils/sendEmail"
 
 export default function Success(){
 
 const location = useLocation()
-const order = location.state?.order
-
-// prevents duplicate saving if page refreshes
 const saved = useRef(false)
+
+const [order,setOrder] = useState(null)
+
+/* ✅ Get orderId from URL (PayFast return) */
+const params = new URLSearchParams(location.search)
+const orderId = params.get("m_payment_id")
 
 useEffect(()=>{
 
-if(order && !saved.current){
+async function updateOrder(){
+
+if(!orderId || saved.current) return
 
 saved.current = true
 
-const fullOrder = {
-...order,
+try{
+
+/* 🔥 FIND ORDER IN FIREBASE */
+const q = query(
+collection(db,"orders"),
+where("orderId","==",orderId)
+)
+
+const snapshot = await getDocs(q)
+
+if(snapshot.empty){
+console.log("Order not found")
+return
+}
+
+const docRef = snapshot.docs[0].ref
+const data = snapshot.docs[0].data()
+
+/* ✅ UPDATE STATUS */
+await updateDoc(docRef,{
 status:"paid",
-createdAt: new Date().toISOString()
+paid:true
+})
+
+setOrder(data)
+
+/* ✅ SEND EMAIL ONCE */
+sendEmail({
+...data,
+status:"paid"
+})
+
+}catch(err){
+console.error("Error updating order:",err)
 }
 
-saveOrder(fullOrder)
-sendEmail(fullOrder)
-
 }
 
-},[order])
+updateOrder()
+
+},[orderId])
 
 return(
 
@@ -46,7 +81,6 @@ padding:"40px"
 <h1 style={{color:"green"}}>✅ Payment Successful</h1>
 
 <p>Your order has been received.</p>
-
 <p>Thank you for shopping at <b>MGS Stall</b>.</p>
 
 {order && (
@@ -57,18 +91,16 @@ padding:"20px",
 borderRadius:"8px",
 marginTop:"20px",
 boxShadow:"0 2px 8px rgba(0,0,0,0.2)",
-width:"300px"
+width:"320px"
 }}>
 
 <h3>Order Summary</h3>
 
+<p><b>Order ID:</b> {orderId}</p>
 <p><b>Name:</b> {order.name}</p>
-
 <p><b>Email:</b> {order.email}</p>
-
 <p><b>Total Paid:</b> R{order.total}</p>
-
-<p><b>Items:</b> {order.items?.length}</p>
+<p><b>Status:</b> <span style={{color:"green"}}>Paid</span></p>
 
 </div>
 
@@ -96,5 +128,4 @@ Return to Store
 </div>
 
 )
-
 }

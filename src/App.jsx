@@ -2,21 +2,27 @@ import { useState, useEffect } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 
 import Navbar from "./components/Navbar"
-import BottomNav from "./components/BottomNav"
+import BottomNav from "./pages/BottomNav"
 
+/* PAGES (FIXED CASE) */
 import Home from "./pages/Home"
-import Product from "./pages/Product"
-import Cart from "./pages/Cart"
-import Checkout from "./pages/Checkout"
+import Product from "./pages/product"
+import Cart from "./pages/cart"
+import Checkout from "./pages/checkout"
+
+/* NEW */
+import Tracking from "./pages/Tracking"
 
 /* PAYMENTS */
-import Payment from "./pages/Payment"
-import Success from "./pages/Success"
-import Cancel from "./pages/Cancel"
+import Payment from "./pages/payment"
+import Success from "./pages/success"
+import Cancel from "./pages/cancel"
 
 /* ADMIN */
 import Admin from "./pages/Admin"
 import Analytics from "./pages/Analytics"
+
+/* ---------------- APP ---------------- */
 
 function App(){
 
@@ -24,85 +30,75 @@ function App(){
 
 const [cart,setCart] = useState(()=>{
 
-const savedCart = localStorage.getItem("cart")
-
-return savedCart ? JSON.parse(savedCart) : []
+try{
+const saved = localStorage.getItem("cart")
+return saved ? JSON.parse(saved) : []
+}catch{
+return []
+}
 
 })
 
-/* SAVE CART TO LOCAL STORAGE */
-
+/* SAVE CART */
 useEffect(()=>{
-
 localStorage.setItem("cart",JSON.stringify(cart))
-
 },[cart])
 
 /* ---------------- CART FUNCTIONS ---------------- */
 
-/* ADD TO CART */
-
 function addToCart(product){
 
-setCart(prevCart=>{
+setCart(prev=>{
 
-const existing = prevCart.find(item=>item.id===product.id)
+const existing = prev.find(item=>item.id === product.id)
 
 if(existing){
-
-return prevCart.map(item =>
+return prev.map(item =>
 item.id === product.id
 ? {...item, qty: item.qty + 1}
 : item
 )
-
 }
 
-return [...prevCart,{...product,qty:1}]
+return [...prev,{...product, qty:1}]
 
 })
 
 }
 
-/* REMOVE FROM CART */
-
 function removeFromCart(id){
-
-setCart(prevCart => prevCart.filter(item => item.id !== id))
-
+setCart(prev => prev.filter(item => item.id !== id))
 }
 
-/* UPDATE QUANTITY */
-
 function updateQty(id,qty){
-
 if(qty <= 0) return
-
-setCart(prevCart =>
-prevCart.map(item =>
+setCart(prev =>
+prev.map(item =>
 item.id === id ? {...item,qty} : item
 )
 )
-
 }
-
-/* CLEAR CART */
 
 function clearCart(){
-
 setCart([])
-
 }
 
-/* ---------------- CART TOTALS ---------------- */
+/* ---------------- TOTALS ---------------- */
 
-const cartCount = cart.reduce((sum,item)=>sum+item.qty,0)
+const cartCount = cart.reduce((sum,item)=>sum + item.qty,0)
 
 const cartTotal = cart.reduce(
-(sum,item)=>sum+(item.price * item.qty),0
+(sum,item)=>sum + (item.price * item.qty),0
 )
 
-/* ---------------- APP ---------------- */
+const totalWeight = cart.reduce(
+(sum,item)=>sum + (item.weight * item.qty),0
+)
+
+const shippingCost = totalWeight * 10
+const grandTotal = cartTotal + shippingCost
+
+/* ---------------- APP UI ---------------- */
 
 return(
 
@@ -112,16 +108,19 @@ return(
 
 <Routes>
 
+{/* 🏠 STORE */}
 <Route
 path="/"
 element={<Home addToCart={addToCart}/>}
 />
 
+{/* 📦 PRODUCT */}
 <Route
 path="/product/:id"
 element={<Product addToCart={addToCart}/>}
 />
 
+{/* 🛒 CART */}
 <Route
 path="/cart"
 element={
@@ -134,51 +133,46 @@ cartTotal={cartTotal}
 }
 />
 
+{/* 💳 CHECKOUT */}
 <Route
 path="/checkout"
 element={
 <Checkout
 cart={cart}
 cartTotal={cartTotal}
+shippingCost={shippingCost}
+grandTotal={grandTotal}
 clearCart={clearCart}
 />
 }
 />
 
-/* ---------------- PAYMENTS ---------------- */
-
+{/* 💰 PAYMENT */}
 <Route
 path="/payment"
 element={
 <Payment
 cart={cart}
-cartTotal={cartTotal}
+total={grandTotal}
 clearCart={clearCart}
 />
 }
 />
 
+{/* ✅ SUCCESS */}
 <Route
 path="/success"
 element={<Success clearCart={clearCart}/>}
 />
 
-<Route
-path="/cancel"
-element={<Cancel/>}
-/>
+<Route path="/cancel" element={<Cancel/>} />
 
-/* ---------------- ADMIN ---------------- */
+{/* 📦 TRACKING (NEW) */}
+<Route path="/track" element={<Tracking/>} />
 
-<Route
-path="/admin"
-element={<Admin/>}
-/>
-
-<Route
-path="/analytics"
-element={<Analytics/>}
-/>
+{/* 🛠 ADMIN */}
+<Route path="/admin" element={<Admin/>} />
+<Route path="/analytics" element={<Analytics/>} />
 
 </Routes>
 

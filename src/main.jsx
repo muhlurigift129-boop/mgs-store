@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import "./styles.css"
+
 import Store from "./pages/Store";
 import Product from "./pages/product";   
 import Cart from "./pages/cart";         
